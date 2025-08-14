@@ -45,7 +45,7 @@ jobs:
 
     - name: Publish (single-file, self-contained)
       run: >
-          dotnet publish -c Release -r win-x64
+          dotnet publish -c Release
           -p:PublishSingleFile=true
           -p:PublishTrimmed=false
           -p:IncludeNativeLibrariesForSelfExtract=true
