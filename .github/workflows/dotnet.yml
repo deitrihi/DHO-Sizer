@@ -48,7 +48,6 @@ jobs:
       run: |
           New-Item -Type Directory dist -Force | Out-Null
           Copy-Item "DHOSizer/bin/Release/**" dist -Recurse -Force
-          Copy-Item "../confing.txt" dist -Recurse -Force
 
     - name: Zip dist folder (Windows)
       shell: pwsh
