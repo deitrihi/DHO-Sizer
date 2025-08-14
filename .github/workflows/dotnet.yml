@@ -48,12 +48,18 @@ jobs:
       run: |
           New-Item -Type Directory dist -Force | Out-Null
           Copy-Item "DHOSizer/bin/Release/**" dist -Recurse -Force
+          Copy-Item "confing.txt" dist -Recurse -Force
 
+    - name: Zip dist folder (Windows)
+      shell: pwsh
+      run: |
+        Compress-Archive -Path dist\* -DestinationPath dist/DHO-Sizer.zip -Force
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
           name: DHO-Sizer
-          path: dist
+          path: dist/DHO-Sizer.zip
           retention-days: 7
 
     - name: Create GitHub Release
@@ -61,6 +67,4 @@ jobs:
       with:
           tag_name: v0.0.2
           files: |
-            dist/*.exe
-            dist/**/*.dll
-            dist/**/*.config
+            dist/DHO-Sizer.zip
