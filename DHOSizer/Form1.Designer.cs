@@ -302,7 +302,6 @@
 		private System.Windows.Forms.TextBox tbY2;
 		private System.Windows.Forms.TextBox tbX2;
 		private System.Windows.Forms.CheckBox chkMostTop;
-		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Button tbnGet1;
 		private System.Windows.Forms.Button btnGet2;
 	}

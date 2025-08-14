@@ -1,9 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Configuration;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace DHOSizer
@@ -36,67 +36,59 @@ namespace DHOSizer
 		}
 
 		private List<SizerData> SizerDatas = new List<SizerData>();
-		public Form1()
+        private Configuration config;
+
+        public Form1()
 		{
 			InitializeComponent();
 			ReadFile();
 		}
 
-		private void ReadFile()
-		{
-			string data = "";
-			using (StreamReader sr = new StreamReader("config.txt", Encoding.Default))
-			{
-				while (!sr.EndOfStream)
-				{
-					data += sr.ReadLine();
-				}
-			}
-			List<string> temp = data.Split(new string[] { "//" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-			for (int i = 0; i < temp.Count; i++)
-			{
-				SizerData sizer = new SizerData();
-				if (i > 0)
-				{
-					sizer.SetValue(temp[i]);
-					SizerDatas.Add(sizer);
-				}
-				else
-				{
-					TopMost = Convert.ToBoolean(temp[i]);
-					chkMostTop.Checked = TopMost;					
-				}
-
-				switch (i)
-				{
-					case 1:
-						tbX1.Text = sizer.X.ToString();
-						tbY1.Text = sizer.Y.ToString();
-						tbWidth1.Text = sizer.Width.ToString();
-						tbHeight1.Text = sizer.Height.ToString();
-						break;
-					case 2:
-						tbX2.Text = sizer.X.ToString();
-						tbY2.Text = sizer.Y.ToString();
-						tbWidth2.Text = sizer.Width.ToString();
-						tbHeight2.Text = sizer.Height.ToString();
-						break;
-				}
-			}
-		}
+        private void ReadFile()
+        {
+            config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            TopMost = Boolean.Parse(config.AppSettings.Settings["TopMost"]?.Value ?? "True");
+            chkMostTop.Checked = TopMost;
+            int count = int.Parse(config.AppSettings.Settings[$"Client_Count"]?.Value ?? "1");
+            for (int i = 0; i < count; i++)
+            {
+                SizerData sizer = new SizerData();
+                sizer.SetValue(config.AppSettings.Settings[$"Client_{i}"]?.Value ?? "0,0,800,600,22,1");
+                SizerDatas.Add(sizer);
+                SetControllerValue(i, sizer);
+            }
+        }
 
 		private void SaveFile()
 		{
-			using (StreamWriter sw = new StreamWriter("config.txt", true, Encoding.Default))
-			{
-				List<string> temp = new List<string>() { TopMost.ToString() };
-				foreach(var sizer in SizerDatas)
-				{
-					temp.Add(sizer.GetValue());
-				}
-				sw.WriteLine(string.Join("//", temp));
-			}
+            config.AppSettings.Settings["TopMost"].Value = TopMost.ToString();
+            for (int i = 0; i < SizerDatas.Count; i++)
+            {
+                config.AppSettings.Settings[$"Client_{i}"].Value = SizerDatas[i].GetValue();
+            }
+
+            config.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection("appSettings");
 		}
+
+        private void SetControllerValue(int index, SizerData sizer)
+        {
+            switch (index)
+            {
+                case 0:
+                    tbX1.Text = sizer.X.ToString();
+                    tbY1.Text = sizer.Y.ToString();
+                    tbWidth1.Text = sizer.Width.ToString();
+                    tbHeight1.Text = sizer.Height.ToString();
+                    break;
+                case 1:
+                    tbX2.Text = sizer.X.ToString();
+                    tbY2.Text = sizer.Y.ToString();
+                    tbWidth2.Text = sizer.Width.ToString();
+                    tbHeight2.Text = sizer.Height.ToString();
+                    break;
+            }
+        }
 
 		private void button1_Click(object sender, EventArgs e)
 		{
@@ -170,7 +162,8 @@ namespace DHOSizer
 		private void chkMostTop_CheckedChanged(object sender, EventArgs e)
 		{
 			this.TopMost = chkMostTop.Checked;
-		}
+            SaveFile();
+        }
 
 		private void tbnGet1_Click(object sender, EventArgs e)
 		{
