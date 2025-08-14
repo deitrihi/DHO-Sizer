@@ -6,8 +6,6 @@ name: .NET
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: .
@@ -45,6 +43,21 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
 
+    - name: Publish (single-file, self-contained)
+      run: >
+          dotnet publish -c Release -r win-x64
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=false
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          --self-contained true
+          -o out
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: DHO-Sizer
+          path: out\*.exe
+          
     - name: Get Release Version
       if: startsWith(steps.merge_message.outputs.message, 'Release') && job.status == 'success'
       run: |
